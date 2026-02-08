@@ -12,6 +12,7 @@ import (
 
 	pbAI "github.com/RarityValue/img-getter-chrome-ext/protos/ai"
 	"github.com/RarityValue/img-getter-chrome-ext/services/api-gateway/internal/handlers"
+	"github.com/sony/gobreaker"
 )
 
 func main() {
@@ -31,7 +32,18 @@ func main() {
 
 	router := gin.Default()
 
-	h := handlers.GatewayHandler(aiClient)
+	st := gobreaker.Settings{
+		Name:        "AIServiceCB",
+		Timeout:     60 * time.Second,
+		Interval:    20 * time.Second,
+		MaxRequests: 5,
+		ReadyToTrip: func(count gobreaker.Counts) bool {
+			return count.ConsecutiveFailures >= 3
+		},
+	}
+	cb := gobreaker.NewCircuitBreaker(st)
+
+	h := handlers.GatewayHandler(aiClient, cb)
 
 	router.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:5173", "https://hbb.local", "http://hbb.local"},
