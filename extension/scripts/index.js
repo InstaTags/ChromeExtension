@@ -1,13 +1,15 @@
+const API_URL = "https://YOUR_AZURE_VM_DOMAIN_OR_IP/api/v1/upload/send";
+
 const copyBtn = document.getElementById("copy-btn");
+const tagsEl = document.getElementById("tags");
 let tags = "";
 
 document.getElementById("getImages").addEventListener("click", async () => {
-  // const imagesDiv = document.getElementById("images");
-  // imagesDiv.innerHTML = "";
+  tagsEl.textContent = "Loading...";
 
   const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
   if (!tabs.length) {
-    // imagesDiv.textContent = "No active tab";
+    tagsEl.textContent = "No active tab.";
     return;
   }
 
@@ -15,44 +17,33 @@ document.getElementById("getImages").addEventListener("click", async () => {
     const results = await chrome.scripting.executeScript({
       target: { tabId: tabs[0].id },
       func: () => {
-        const img = document.querySelector(
-          'img[alt="Photo for tag placement"]',
-        );
-
-        if (!img) return null;
-
-        return img.src;
+        const img = document.querySelector('img[alt="Photo for tag placement"]');
+        return img ? img.src : null;
       },
     });
 
-    if (!results || !results.length || !results[0].result) {
-      // imagesDiv.textContent = "Image not found";
+    const imgSrc = results?.[0]?.result;
+    if (!imgSrc) {
+      tagsEl.textContent = "Image not found on this page.";
       return;
     }
 
-    // const src = results[0].result;
+    const imgResponse = await fetch(imgSrc);
+    if (!imgResponse.ok) throw new Error("Failed to fetch image");
+    const imgBlob = await imgResponse.blob();
 
-    // const link = document.createElement("a");
-    // link.href = "#";
-    // link.textContent = src;
-    // link.style.display = "block";
+    const formData = new FormData();
+    formData.append("image", imgBlob, "image.jpg");
 
-    // link.addEventListener("click", (e) => {
-    //   e.preventDefault();
-    //   chrome.tabs.create({ url: src, active: false });
-    // });
+    const response = await fetch(API_URL, { method: "POST", body: formData });
+    if (!response.ok) throw new Error(`API error: ${response.status}`);
 
-    // imagesDiv.appendChild(link);
-    fetch("../output.json")
-      .then((res) => res.json())
-      .then((data) => {
-        tags = data.output;
-        document.getElementById("tags").textContent = tags;
-      })
-      .catch((error) => console.error("Fetch error : ", error));
+    const data = await response.json();
+    tags = data.hashtags.join(", ");
+    tagsEl.textContent = tags;
   } catch (err) {
     console.error(err);
-    // imagesDiv.textContent = "Cannot access this page";
+    tagsEl.textContent = "Error generating tags.";
   }
 });
 
@@ -61,7 +52,6 @@ copyBtn.addEventListener("click", async () => {
     alert("No tags to copy yet");
     return;
   }
-
   await navigator.clipboard.writeText(tags);
   alert("Copied!");
 });

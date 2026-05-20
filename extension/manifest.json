@@ -4,6 +4,7 @@
   "version": "1.0",
   "manifest_version": 3,
   "permissions": ["activeTab", "scripting", "clipboardWrite"],
+  "host_permissions": ["https://YOUR_AZURE_VM_DOMAIN_OR_IP/*"],
   "action": {
     "default_popup": "./index.html"
   }
