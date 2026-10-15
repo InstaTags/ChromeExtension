@@ -8,18 +8,35 @@
     <link rel="stylesheet" href="./assets/styles/index.css" />
   </head>
   <body>
-    <section class="main">
-      <p class="logo">InstaTags</p>
-      <button id="getImages">Get Tags</button>
-      <!-- <div id="images"></div> -->
-      <div class="tags-container">
-        <p class="tags-header">Tags Generated</p>
-        <button id="copy-btn">
-          <img src="./assets/icons/ui-icons/copy.svg" alt="Copy" />
-        </button>
-        <p id="tags"></p>
+    <section class="upload">
+      <h1 class="logo">InstaTags</h1>
+
+      <div id="idle-state" class="idle-state">
+        <button id="get-tags-btn" class="primary-btn get-tags-btn" type="button">Get Tags</button>
+      </div>
+
+      <div id="loading-state" class="loading-state" hidden>
+        <div class="spinner"></div>
+        <p class="status">Getting tags...</p>
+      </div>
+
+      <div id="result-state" class="result-state" hidden>
+        <div class="hashtag-container">
+          <div class="hashtag-container-header">
+            <p class="hashtag-label">Generated Tags</p>
+            <button id="copy-btn" class="hashtag-copy-btn" type="button" aria-label="Copy all hashtags">COPY</button>
+          </div>
+          <div id="hashtag-well" class="hashtag-well"></div>
+        </div>
+        <button id="reset-btn" class="primary-btn reset-btn" type="button">Get Tags Again</button>
       </div>
     </section>
+
+    <div id="toast" class="toast" role="alert" aria-live="polite">
+      <span class="toast-indicator"></span>
+      <span class="toast-message"></span>
+      <button class="toast-dismiss" id="toast-dismiss" type="button" aria-label="Dismiss">×</button>
+    </div>
 
     <script src="./scripts/index.js"></script>
   </body>
